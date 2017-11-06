@@ -1,11 +1,17 @@
-d3.select("#convex-lens").call(d3.drag().subject(subject).on("drag", dragmove));
+d3.select("#convex-lens").call(d3.drag().on("start", dragstarted).on("drag", dragmove));
+d3.select("#mirror").call(d3.drag().on("start", dragstarted).on("drag", dragmove));
+function dragstarted(){
+	d3.select(this).raise();
+}
 function dragmove(){
-	var x = d3.event.x;
-	var y = d3.event.y;
+	var bound = this.getBoundingClientRect();
+	var x = d3.event.x - bound.width/2;
+	var y = d3.event.y - bound.height/2;
 	d3.select(this).attr("transform", "translate("+x+","+y+")");
 }
-function subject(d){
-	var t = d3.select(this);
-	return {x: t.attr("x"), y: t.attr("y")};
-	// return {x: d3.event.x, y: d3.event.y};
+function subject(){
+	var t = d3.transform(d3.select('#convex-lens').attr("transform")),
+	    x = t.translate[0],
+	    y = t.translate[1];
+	return {x: x, y: y};
 }
