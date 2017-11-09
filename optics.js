@@ -1,37 +1,18 @@
+// margins
 var margin = { top: 40, right: 40, bottom: 40, left: 40 },
     width = 1000 - margin.left - margin.right,
     height = 800 - margin.top - margin.bottom;
-
 var svg = d3.select('#simulation')
     .attr('width', width + margin.left + margin.right)
     .attr('height', height + margin.top + margin.bottom)
   .select('#transform')
     .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-// general drag code for non circle things
-var drag = d3.drag().on("drag", dragmove);
-// d3.select("#convex-lens").call(drag);
-d3.select("#object").call(drag);
-// function dragstarted(){
-// 	// redraws the object to be on top
-// 	d3.select(this).raise();
-// }
-// this gets the center of the object
+// variables for getting center of mirror, object, etc
 var bound = d3.select('#mirror').node().getBoundingClientRect();
 var pencilBound = d3.select("#object").node().getBoundingClientRect();
-
-function dragmove(){
-	// gets the bounding rectangle so we can find the center
-	let bound = this.getBoundingClientRect();
-	var x = d3.event.x - (bound.width/2);
-	var y = d3.event.y - (bound.height/2);
-	d3.select(this).attr("transform", "translate("+x+","+y+")");
-}
-function adjustedDrag(){
-
-}
 // variable thing to get the circle drag to work
 var circleEye = [
-	{x: 0, y: 0}
+    {x: 0, y: 0}
 ];
 // make the circle
 var eye = svg.selectAll("circle").data(circleEye).enter().append('circle')
@@ -44,7 +25,7 @@ var eye = svg.selectAll("circle").data(circleEye).enter().append('circle')
 eye.call(d3.drag().on("drag", circledrag));
 // set the x and y attributes to the same as the dragging
 function circledrag(d){
-	d3.select(this).attr("cx", d.x = d3.event.x).attr("cy", d.y = d3.event.y);
+    d3.select(this).attr("cx", d.x = d3.event.x).attr("cy", d.y = d3.event.y);
 }
 // implement stupid graph
 // x axis scaling stuff
@@ -56,6 +37,23 @@ var yAxis = d3.axisLeft(yScale);
 // make the axes
 svg.append("g").call(xAxis).attr("transform", "translate(" + 0 + ", " + yScale(0) + ")");
 svg.append("g").call(yAxis).attr("transform", "translate(" + xScale(0) + ", " + 0 + ")");
+// positioning things at the start
 d3.select("#mirror").attr("transform", "translate(" + (xScale(0)-bound.width/2) + ", " + (yScale(0)-bound.height/2) + ")");
 d3.select("#object").attr("transform", "translate("+(xScale(-20)-pencilBound.width/2)+","+(yScale(0)-pencilBound.height/2)+")");
-svg.append()
+svg.select("#object-image").attr("transform", "translate("+(xScale(20)-pencilBound.width/2)+","+(yScale(0)-pencilBound.height/2)+")");
+// general drag code for non circle things
+var drag = d3.drag().on("start", dragstarted).on("drag", dragmove);
+d3.select("#object").call(drag);
+function dragstarted(){
+	// redraws the object to be on top
+	d3.select(this).raise();
+}
+function dragmove(){
+    // gets the bounding rectangle so we can find the center
+    let bound = this.getBoundingClientRect();
+    var x = d3.event.x - (bound.width/2);
+    var y = d3.event.y - (bound.height/2);
+    d3.select(this).attr("transform", "translate("+x+","+y+")");
+    svg.select("#object-image").attr("transform", "translate("+(xScale(100)-d3.event.x-bound.width/2)+","+(y)+")");
+}
+svg.select("#svg").attr("viewBox", "0 0 40 200");
