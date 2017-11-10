@@ -59,8 +59,8 @@ function solidRayTop(){
 	];
 }
 function dashedRayTop(){
-	var imageBound = d3.select("#object-image").node().getBoundingClientRect;
-	return [solidRayTop()[1], {x: imageBound.x, y: imageBound.y}];
+	var imageBound = d3.select("#object-image").node().getBoundingClientRect();
+	return [solidRayTop()[1], {x: imageBound.x-margin.left, y: imageBound.y-margin.top}];
 }
 // calculate the correct angle and height stuff
 function equalAngleHeight(){
@@ -68,7 +68,6 @@ function equalAngleHeight(){
 	pencilBound = d3.select("#object").node().getBoundingClientRect();
 	var x1 = xScale(0)-eyeBound.x+margin.right;
 	var x2 = xScale(0)-pencilBound.right+margin.right;
-	console.log([x1, x2]);
 	// y coordinate of eye * x1 + y coord of pencil * x2 = mystery y coord(x1 + x2)
 	return (eyeBound.y * x1 + pencilBound.y * x2)/(x1 + x2);
 }
@@ -76,7 +75,7 @@ function equalAngleHeight(){
 //drawing the lines
 var line = d3.line().x(function(d){return d.x;}).y(function(d){return d.y;});
 svg.append("path").attr("d", line(solidRayTop())).attr("stroke-width", 1).attr("stroke", "black").attr("fill", "none").attr("class", "solidRayTop");
-svg.append("path").attr("d", line(solidRayTop()[1])).attr("stroke-width", 1).attr("stroke", "black").attr("fill", "none").attr("class", "dashedRayTop");
+svg.append("path").attr("d", line(dashedRayTop())).attr("stroke-width", 1).attr("stroke", "black").attr("fill", "none").attr("class", "dashedRayTop");
 
 // general drag code for non circle things
 var mirrorDrag = d3.drag().on("start", dragstarted).on("drag", dragmove);
@@ -93,6 +92,7 @@ function dragmove(){
 		d3.select(this).attr("transform", "translate("+x+","+y+")");
 		svg.select("#object-image").attr("transform", "translate("+(xScale(100)-d3.event.x-bound.width/2)+","+(y)+")");
 		d3.select(".solidRayTop").attr("d", line(solidRayTop()));
+		d3.select(".dashedRayTop").attr("d", line(dashedRayTop()));
 }
 // call the circle and drag it
 eye.call(d3.drag().on("drag", circledrag));
@@ -100,4 +100,5 @@ eye.call(d3.drag().on("drag", circledrag));
 function circledrag(d){
 		d3.select(this).attr("cx", d.x = d3.event.x).attr("cy", d.y = d3.event.y);
 		d3.select(".solidRayTop").attr("d", line(solidRayTop()));
+		d3.select(".dashedRayTop").attr("d", line(dashedRayTop()));
 }

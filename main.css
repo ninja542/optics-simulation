@@ -1,3 +1,6 @@
 /* #convex-lens{
 	transform-origin: 25px 140px;
 } */
+body {
+	margin: 0;
+}
