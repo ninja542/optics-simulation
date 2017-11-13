@@ -29,7 +29,7 @@ var eye = svg.selectAll("circle").data(circleEye).enter().append('circle')
 		.attr('cx', function(d){return d.x;})
 		.attr('cy', function(d){return d.y;})
 		.attr('r', 10)
-		.style('fill', '#000')
+		.style('fill', '#F00')
 		.attr("id", "eye");
 
 // variables for getting center of mirror, object, etc
@@ -41,7 +41,7 @@ var convexLensBound = d3.select("#convex-lens").node().getBoundingClientRect();
 // positioning things at the start
 d3.select("#mirror").attr("transform", "translate(" + (xScale(0)) + ", " + (yScale(0)-mirrorBound.height/2) + ")");
 d3.select("#object").attr("transform", "translate("+(xScale(-20)-pencilBound.width/2)+","+(yScale(0)-pencilBound.height/2)+")");
-d3.select("#eye").attr("transform", "translate(" + xScale(-40) + ", " + yScale(60) + ")");
+d3.select("#eye").attr("transform", "translate(" + xScale(-40) + ", " + yScale(40) + ")");
 svg.select("#object-image").attr("transform", "translate("+(xScale(20)-pencilBound.width/2)+","+(yScale(0)-pencilBound.height/2)+")");
 // svg.select("#lens").attr("viewBox", "0 0 40 200");
 svg.select("#convex-lens").attr("transform", "translate(" + (xScale(0)-convexLensBound.width/2) + ", " + (yScale(0)-convexLensBound.height/2) + ")");
@@ -69,13 +69,15 @@ function equalAngleHeight(){
 	var x1 = xScale(0)-eyeBound.x+margin.right;
 	var x2 = xScale(0)-pencilBound.right+margin.right;
 	// y coordinate of eye * x1 + y coord of pencil * x2 = mystery y coord(x1 + x2)
-	return (eyeBound.y * x1 + pencilBound.y * x2)/(x1 + x2);
+	var y1 = eyeBound.y-margin.top;
+	var y2 = pencilBound.y-margin.top;
+	return (y2 * x1 + y1 * x2)/(x1 + x2);
 }
 
 //drawing the lines
 var line = d3.line().x(function(d){return d.x;}).y(function(d){return d.y;});
 svg.append("path").attr("d", line(solidRayTop())).attr("stroke-width", 1).attr("stroke", "black").attr("fill", "none").attr("class", "solidRayTop");
-svg.append("path").attr("d", line(dashedRayTop())).attr("stroke-width", 1).attr("stroke", "black").attr("fill", "none").attr("class", "dashedRayTop");
+svg.append("path").attr("d", line(dashedRayTop())).attr("stroke-width", 1).attr("stroke", "black").attr("fill", "none").attr("stroke-dasharray", "5, 10").attr("class", "dashedRayTop");
 
 // general drag code for non circle things
 var mirrorDrag = d3.drag().on("start", dragstarted).on("drag", dragmove);
