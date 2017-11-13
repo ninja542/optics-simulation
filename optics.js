@@ -29,7 +29,7 @@ var eye = svg.selectAll("circle").data(circleEye).enter().append('circle')
 		.attr('cx', function(d){return d.x;})
 		.attr('cy', function(d){return d.y;})
 		.attr('r', 10)
-		.style('fill', '#F00')
+		.style('fill', '#000')
 		.attr("id", "eye");
 
 // variables for getting center of mirror, object, etc
