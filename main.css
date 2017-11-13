@@ -1,6 +1,14 @@
 /* #convex-lens{
 	transform-origin: 25px 140px;
 } */
-body {
+body{
 	margin: 0;
+}
+#body {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-evenly;
+}
+#container, #instructions {
+	flex-grow: 1;
 }

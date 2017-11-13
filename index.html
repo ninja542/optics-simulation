@@ -1,18 +1,18 @@
 <html>
 	<title>Optics simulation</title>
-	<link href="main.css" type="stylesheet">
+	<link type="stylesheet" href="main.css">
 <body>
-	<div id="body">
-			<!-- <img src="Asset 1.svg" height="100"> -->
-		<svg id="simulation" height="800" width="1000" xmlns="http://www.w3.org/2000/svg">
+<div id="body">
+	<div id="container">
+		<svg id="simulation" height="600" width="1000" xmlns="http://www.w3.org/2000/svg">
 			<!-- <style>#convex-lens{fill:#ADD8E6;stroke:#000;stroke-miterlimit:10;stroke-width:3px;}</style> -->
 		<g id="transform">
-			<style>#convex-lens{fill:#ADD8E6;stroke:#000;stroke-miterlimit:10;}</style>
+			<style>#convex-lens2{fill:#ADD8E6;stroke:#000;stroke-miterlimit:10;}</style>
 			<g id="mirror">
-				<rect width="20" height="720" fill="#ADD8E6" stroke="black" stroke-width="3"/>
+				<rect width="20" height="520" fill="#ADD8E6" stroke="black" stroke-width="3"/>
 			</g>
-			<svg preserveAspectRatio="xMinYMin" id="lens">
-				<g id="convex-lens"><path d="M5.83.5A53.39,53.39,0,0,1,9.19,13a87.85,87.85,0,0,1,1,12.5A77.41,77.41,0,0,1,9.28,38,49,49,0,0,1,5.83,50.5h-1A49,49,0,0,1,1.38,38,77.42,77.42,0,0,1,.5,25.5a87.85,87.85,0,0,1,1-12.5A53.4,53.4,0,0,1,4.83.5Z"/></g>
+			<svg preserveAspectRatio="xMinYMin" visibility="hidden">
+				<g id="convex-lens2"><path d="M38.5,525.32a921.26,921.26,0,0,0,37-260,921.26,921.26,0,0,0-37-260,921.26,921.26,0,0,0-37,260A921.26,921.26,0,0,0,38.5,525.32Z"/></g>
 			</svg>
 			<g id="object">
 				<style>.body{fill:#ff0;}.eraser{fill:#ed1e79;}.tip{fill:#c69c6d;}</style><g id="Layer_2" viewBox="0 0 10 191.45"><g id="Layer_1-2" data-name="Layer 1"><rect class="body" y="28.45" width="10" height="150"/><rect class="eraser" y="178.45" width="10" height="13"/><g id="_Group_" data-name="&lt;Group&gt;"><polygon class="tip" points="6.84 10.45 10 28.45 0 28.45 3.16 10.45 6.84 10.45"/><polygon points="5 0 6.84 10.45 3.16 10.45 5 0"/></g></g></g>
@@ -23,8 +23,13 @@
 		</g>
 		</svg>
 	</div>
-	<script src="https://d3js.org/d3.v4.min.js"></script>
-	<script src="https://unpkg.com/vue@2.5.2/dist/vue.js"></script>
-	<script src="optics.js"></script>
+	<div id="instructions">
+		<h1>Choose your lens/mirror here:</h1>
+		<p> radio buttons with mirrors/lens</p>
+	</div>
+</div>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://unpkg.com/vue@2.5.2/dist/vue.js"></script>
+<script src="optics.js"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 // margins
 var margin = { top: 40, right: 40, bottom: 40, left: 40 },
 		width = 1000 - margin.left - margin.right,
-		height = 800 - margin.top - margin.bottom;
+		height = 600 - margin.top - margin.bottom;
 var svg = d3.select('#simulation')
 		.attr('width', width + margin.left + margin.right)
 		.attr('height', height + margin.top + margin.bottom)
@@ -36,15 +36,14 @@ var eye = svg.selectAll("circle").data(circleEye).enter().append('circle')
 var mirrorBound = d3.select('#mirror').node().getBoundingClientRect();
 var pencilBound = d3.select("#object").node().getBoundingClientRect();
 var eyeBound = d3.select("#eye").node().getBoundingClientRect();
-var convexLensBound = d3.select("#convex-lens").node().getBoundingClientRect();
+var convexLens2Bound = d3.select("#convex-lens2").node().getBoundingClientRect();
 
 // positioning things at the start
 d3.select("#mirror").attr("transform", "translate(" + (xScale(0)) + ", " + (yScale(0)-mirrorBound.height/2) + ")");
 d3.select("#object").attr("transform", "translate("+(xScale(-20)-pencilBound.width/2)+","+(yScale(0)-pencilBound.height/2)+")");
 d3.select("#eye").attr("transform", "translate(" + xScale(-40) + ", " + yScale(40) + ")");
 svg.select("#object-image").attr("transform", "translate("+(xScale(20)-pencilBound.width/2)+","+(yScale(0)-pencilBound.height/2)+")");
-// svg.select("#lens").attr("viewBox", "0 0 40 200");
-svg.select("#convex-lens").attr("transform", "translate(" + (xScale(0)-convexLensBound.width/2) + ", " + (yScale(0)-convexLensBound.height/2) + ")");
+svg.select("#convex-lens2").attr("transform", "translate(" + (xScale(0)-convexLens2Bound.width/2) + ", " + 0 + ")");
 
 // ray tracing code
 function solidRayTop(){
@@ -54,7 +53,7 @@ function solidRayTop(){
 	// plane mirror ray tracing
 	return [
 			{x: eyeBound.x-margin.right, y: eyeBound.y-margin.top},
-			{x: xScale(0), y: equalAngleHeight()},
+			{x: xScale(0), y: equalAngleHeight(eyeBound, pencilBound, pencilBound.y)},
 			{x: (pencilBound.x-pencilBound.width/2)-margin.right, y: pencilBound.y-margin.top}
 	];
 }
@@ -62,15 +61,27 @@ function dashedRayTop(){
 	var imageBound = d3.select("#object-image").node().getBoundingClientRect();
 	return [solidRayTop()[1], {x: imageBound.x-margin.left, y: imageBound.y-margin.top}];
 }
-// calculate the correct angle and height stuff
-function equalAngleHeight(){
+function dashedRayBottom(){
+	var imageBound = d3.select("#object-image").node().getBoundingClientRect();
+	return [solidRayBottom()[1], {x: imageBound.x-margin.left, y: imageBound.y+imageBound.height-margin.top-8}];
+}
+// need to fix positioning soon tomorrow then I can finally move on to curved mirrors
+function solidRayBottom(){
 	eyeBound = d3.select("#eye").node().getBoundingClientRect();
 	pencilBound = d3.select("#object").node().getBoundingClientRect();
+	return [
+			{x: eyeBound.x-margin.right, y: eyeBound.y-margin.top},
+			{x: xScale(0), y: equalAngleHeight(eyeBound, pencilBound, pencilBound.y+pencilBound.height)},
+			{x: (pencilBound.x-pencilBound.width/2)-margin.right, y: pencilBound.y+pencilBound.height-margin.top-8}
+	];
+}
+// calculate the correct angle and height stuff
+function equalAngleHeight(eyeBound, pencilBound, pencilY){
 	var x1 = xScale(0)-eyeBound.x+margin.right;
 	var x2 = xScale(0)-pencilBound.right+margin.right;
 	// y coordinate of eye * x1 + y coord of pencil * x2 = mystery y coord(x1 + x2)
 	var y1 = eyeBound.y-margin.top;
-	var y2 = pencilBound.y-margin.top;
+	var y2 = pencilY-margin.top;
 	return (y2 * x1 + y1 * x2)/(x1 + x2);
 }
 
@@ -78,6 +89,8 @@ function equalAngleHeight(){
 var line = d3.line().x(function(d){return d.x;}).y(function(d){return d.y;});
 svg.append("path").attr("d", line(solidRayTop())).attr("stroke-width", 1).attr("stroke", "black").attr("fill", "none").attr("class", "solidRayTop");
 svg.append("path").attr("d", line(dashedRayTop())).attr("stroke-width", 1).attr("stroke", "black").attr("fill", "none").attr("stroke-dasharray", "5, 10").attr("class", "dashedRayTop");
+svg.append("path").attr("d", line(solidRayBottom())).attr("stroke-width", 1).attr("stroke", "black").attr("fill", "none").attr("class", "solidRayBottom");
+svg.append("path").attr("d", line(dashedRayBottom())).attr("stroke-width", 1).attr("stroke", "black").attr("fill", "none").attr("stroke-dasharray", "5, 10").attr("class", "dashedRayBottom");
 
 // general drag code for non circle things
 var mirrorDrag = d3.drag().on("start", dragstarted).on("drag", dragmove);
@@ -95,6 +108,8 @@ function dragmove(){
 		svg.select("#object-image").attr("transform", "translate("+(xScale(100)-d3.event.x-bound.width/2)+","+(y)+")");
 		d3.select(".solidRayTop").attr("d", line(solidRayTop()));
 		d3.select(".dashedRayTop").attr("d", line(dashedRayTop()));
+		d3.select(".solidRayBottom").attr("d", line(solidRayBottom()));
+		d3.select(".dashedRayBottom").attr("d", line(dashedRayBottom()));
 }
 // call the circle and drag it
 eye.call(d3.drag().on("drag", circledrag));
@@ -103,4 +118,6 @@ function circledrag(d){
 		d3.select(this).attr("cx", d.x = d3.event.x).attr("cy", d.y = d3.event.y);
 		d3.select(".solidRayTop").attr("d", line(solidRayTop()));
 		d3.select(".dashedRayTop").attr("d", line(dashedRayTop()));
+		d3.select(".solidRayBottom").attr("d", line(solidRayBottom()));
+		d3.select(".dashedRayBottom").attr("d", line(dashedRayBottom()));
 }
