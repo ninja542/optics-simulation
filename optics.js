@@ -52,27 +52,27 @@ function solidRayTop(){
 	pencilBound = d3.select("#object").node().getBoundingClientRect();
 	// plane mirror ray tracing
 	return [
-			{x: eyeBound.x-margin.right, y: eyeBound.y-margin.top},
+			{x: eyeBound.x-margin.right, y: eyeBound.y-margin.top+window.scrollY},
 			{x: xScale(0), y: equalAngleHeight(eyeBound, pencilBound, pencilBound.y)},
-			{x: (pencilBound.x-pencilBound.width/2)-margin.right, y: pencilBound.y-margin.top}
+			{x: (pencilBound.x-pencilBound.width/2)-margin.right, y: pencilBound.y-margin.top+window.scrollY}
 	];
 }
 function dashedRayTop(){
 	var imageBound = d3.select("#object-image").node().getBoundingClientRect();
-	return [solidRayTop()[1], {x: imageBound.x-margin.left, y: imageBound.y-margin.top}];
+	return [solidRayTop()[1], {x: imageBound.x-margin.left, y: imageBound.y-margin.top+window.scrollY}];
 }
 function dashedRayBottom(){
 	var imageBound = d3.select("#object-image").node().getBoundingClientRect();
-	return [solidRayBottom()[1], {x: imageBound.x-margin.left, y: imageBound.y+imageBound.height-margin.top-8}];
+	return [solidRayBottom()[1], {x: imageBound.x-margin.left, y: imageBound.y+imageBound.height-margin.top-8+window.scrollY}];
 }
 // need to fix positioning soon tomorrow then I can finally move on to curved mirrors
 function solidRayBottom(){
 	eyeBound = d3.select("#eye").node().getBoundingClientRect();
 	pencilBound = d3.select("#object").node().getBoundingClientRect();
 	return [
-			{x: eyeBound.x-margin.right, y: eyeBound.y-margin.top},
+			{x: eyeBound.x-margin.right, y: eyeBound.y-margin.top+window.scrollY},
 			{x: xScale(0), y: equalAngleHeight(eyeBound, pencilBound, pencilBound.y+pencilBound.height)},
-			{x: (pencilBound.x-pencilBound.width/2)-margin.right, y: pencilBound.y+pencilBound.height-margin.top-8}
+			{x: (pencilBound.x-pencilBound.width/2)-margin.right, y: pencilBound.y+pencilBound.height-margin.top-8+window.scrollY}
 	];
 }
 // calculate the correct angle and height stuff
@@ -80,8 +80,8 @@ function equalAngleHeight(eyeBound, pencilBound, pencilY){
 	var x1 = xScale(0)-eyeBound.x+margin.right;
 	var x2 = xScale(0)-pencilBound.right+margin.right;
 	// y coordinate of eye * x1 + y coord of pencil * x2 = mystery y coord(x1 + x2)
-	var y1 = eyeBound.y-margin.top;
-	var y2 = pencilY-margin.top;
+	var y1 = eyeBound.y-margin.top+window.scrollY;
+	var y2 = pencilY-margin.top+window.scrollY;
 	return (y2 * x1 + y1 * x2)/(x1 + x2);
 }
 
