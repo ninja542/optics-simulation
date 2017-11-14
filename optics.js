@@ -71,7 +71,7 @@ function solidRayBottom(){
 	pencilBound = d3.select("#object").node().getBoundingClientRect();
 	return [
 			{x: eyeBound.x-margin.right, y: eyeBound.y-margin.top+window.scrollY},
-			{x: xScale(0), y: equalAngleHeight(eyeBound, pencilBound, pencilBound.y+pencilBound.height)},
+			{x: xScale(0), y: equalAngleHeight(eyeBound, pencilBound, pencilBound.y+pencilBound.height-8)},
 			{x: (pencilBound.x-pencilBound.width/2)-margin.right, y: pencilBound.y+pencilBound.height-margin.top-8+window.scrollY}
 	];
 }
@@ -104,8 +104,8 @@ function dragmove(){
 		let bound = this.getBoundingClientRect();
 		var x = d3.event.x - (bound.width/2);
 		var y = d3.event.y - (bound.height/2);
-		d3.select(this).attr("transform", "translate("+x+","+y+")");
-		svg.select("#object-image").attr("transform", "translate("+(xScale(100)-d3.event.x-bound.width/2)+","+(y)+")");
+		d3.select(this).attr("transform", "translate("+(Math.min(x, xScale(0)-bound.width))+","+y+")");
+		svg.select("#object-image").attr("transform", "translate("+(Math.max(xScale(0), xScale(100)-d3.event.x-bound.width/2))+","+(y)+")");
 		d3.select(".solidRayTop").attr("d", line(solidRayTop()));
 		d3.select(".dashedRayTop").attr("d", line(dashedRayTop()));
 		d3.select(".solidRayBottom").attr("d", line(solidRayBottom()));
@@ -115,9 +115,15 @@ function dragmove(){
 eye.call(d3.drag().on("drag", circledrag));
 // set the x and y attributes to the same as the dragging
 function circledrag(d){
-		d3.select(this).attr("cx", d.x = d3.event.x).attr("cy", d.y = d3.event.y);
+		d3.select(this).attr("cx", d.x = Math.min(xScale(-60)-10, d3.event.x)).attr("cy", d.y = d3.event.y);
 		d3.select(".solidRayTop").attr("d", line(solidRayTop()));
 		d3.select(".dashedRayTop").attr("d", line(dashedRayTop()));
 		d3.select(".solidRayBottom").attr("d", line(solidRayBottom()));
 		d3.select(".dashedRayBottom").attr("d", line(dashedRayBottom()));
 }
+var app = new Vue({
+	el: "#instructions",
+	data: {
+		type: "Plane Mirror",
+	}
+});
