@@ -1,9 +1,10 @@
 var app = new Vue({
-	el: "#instructions",
+	el: "#wrapper",
 	data: {
 		name: "Plane Mirror",
-	}
+	},
 });
+
 // margins
 var margin = { top: 40, right: 40, bottom: 40, left: 40 },
 		width = 1000 - margin.left - margin.right,
@@ -11,19 +12,8 @@ var margin = { top: 40, right: 40, bottom: 40, left: 40 },
 var svg = d3.select('#simulation')
 		.attr('width', width + margin.left + margin.right)
 		.attr('height', height + margin.top + margin.bottom)
-	.select('#transform')
+		.select('#transform')
 		.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-
-// implement graph
-// x axis scaling stuff
-var xScale = d3.scaleLinear().domain([-100, 100]).range([0, width]);
-var xAxis = d3.axisBottom(xScale);
-// y axis scaling stuff
-var yScale = d3.scaleLinear().domain([100, -100]).range([0, height]);
-var yAxis = d3.axisLeft(yScale);
-// make the axes
-svg.append("g").call(xAxis).attr("transform", "translate(" + 0 + ", " + yScale(0) + ")");
-svg.append("g").call(yAxis).attr("transform", "translate(" + xScale(0) + ", " + 0 + ")");
 
 // variable thing to get the circle drag to work
 var circleEye = [
@@ -37,18 +27,27 @@ var eye = svg.selectAll("circle").data(circleEye).enter().append('circle')
 		.style('fill', '#000')
 		.attr("id", "eye");
 
+// implement graph
+// x axis scaling stuff
+var xScale = d3.scaleLinear().domain([-100, 100]).range([0, width]);
+var xAxis = d3.axisBottom(xScale);
+// y axis scaling stuff
+var yScale = d3.scaleLinear().domain([100, -100]).range([0, height]);
+var yAxis = d3.axisLeft(yScale);
+// make the axes
+svg.append("g").call(xAxis).attr("transform", "translate(" + 0 + ", " + yScale(0) + ")");
+svg.append("g").call(yAxis).attr("transform", "translate(" + xScale(0) + ", " + 0 + ")");
+
 // variables for getting center of mirror, object, etc
 var mirrorBound = d3.select('#mirror').node().getBoundingClientRect();
 var pencilBound = d3.select("#object").node().getBoundingClientRect();
 var eyeBound = d3.select("#eye").node().getBoundingClientRect();
-var convexLens2Bound = d3.select("#convex-lens2").node().getBoundingClientRect();
 
 // positioning things at the start
 d3.select("#mirror").attr("transform", "translate(" + (xScale(0)) + ", " + (yScale(0)-mirrorBound.height/2) + ")");
 d3.select("#object").attr("transform", "translate("+(xScale(-20)-pencilBound.width/2)+","+(yScale(0)-pencilBound.height/2)+")");
 d3.select("#eye").attr("transform", "translate(" + xScale(-40) + ", " + yScale(40) + ")");
 svg.select("#object-image").attr("transform", "translate("+(xScale(20)-pencilBound.width/2)+","+(yScale(0)-pencilBound.height/2)+")");
-svg.select("#convex-lens2").attr("transform", "translate(" + (xScale(0)-convexLens2Bound.width/2) + ", " + 0 + ")");
 
 // ray tracing code
 //plane mirror
@@ -128,4 +127,8 @@ if (app.name==="Plane Mirror"){
 			d3.select(".solidRayBottom").attr("d", line(solidRayBottom()));
 			d3.select(".dashedRayBottom").attr("d", line(dashedRayBottom()));
 	}
+}
+else if (app.name === "Convex Lens"){
+	var convexLens2Bound = d3.select("#convex-lens2").node().getBoundingClientRect();
+	svg.select("#convex-lens2").attr("transform", "translate(" + (xScale(0)-convexLens2Bound.width/2) + ", " + 0 + ")");
 }

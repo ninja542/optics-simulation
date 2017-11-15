@@ -1,10 +1,31 @@
 /* #convex-lens{
 	transform-origin: 25px 140px;
 } */
-#body{
+#wrapper{
 	margin: 0;
-}
-#body {
 	display: flex;
 	flex-wrap: wrap;
+}
+.cls-1{
+	fill:rgba(255, 255, 0, 0.5);
+}
+.cls-2{
+	fill:rgba(237, 30, 121, 0.5);
+}
+.cls-3{
+	fill:rgba(198, 156, 109, 0.5);
+}
+.body{
+	fill:#ff0;
+}
+.eraser{
+	fill:#ed1e79;
+}
+.tip{
+	fill:#c69c6d;
+}
+#convex-lens2{
+	fill:#ADD8E6;
+	stroke:#000;
+	stroke-miterlimit:10;
 }
