@@ -1,7 +1,7 @@
 var app = new Vue({
 	el: "#wrapper",
 	data: {
-		name: "Plane Mirror",
+		name: "Convex Lens",
 	},
 });
 
@@ -45,46 +45,44 @@ var eyeBound = d3.select("#eye").node().getBoundingClientRect();
 
 // positioning things at the start
 d3.select("#mirror").attr("transform", "translate(" + (xScale(0)) + ", " + (yScale(0)-mirrorBound.height/2) + ")");
-d3.select("#object").attr("transform", "translate("+(xScale(-20)-pencilBound.width/2)+","+(yScale(0)-pencilBound.height/2)+")");
+d3.select("#object").attr("transform", "translate("+(xScale(-40)-pencilBound.width/2)+","+(yScale(0)-pencilBound.height/2)+")");
 d3.select("#eye").attr("transform", "translate(" + xScale(-40) + ", " + yScale(40) + ")");
-svg.select("#object-image").attr("transform", "translate("+(xScale(20)-pencilBound.width/2)+","+(yScale(0)-pencilBound.height/2)+")");
+svg.select("#object-image").attr("transform", "translate("+(xScale(40)-pencilBound.width/2)+","+(yScale(0)-pencilBound.height/2)+")");
 
 // ray tracing code
 //plane mirror
 if (app.name==="Plane Mirror"){
 	var solidRayTop = function(){
 		//update object bounds
-		eyeBound = d3.select("#eye").node().getBoundingClientRect();
-		pencilBound = d3.select("#object").node().getBoundingClientRect();
+		boundUpdate();
 		// plane mirror ray tracing
 		return [
-			{x: eyeBound.x-margin.right, y: eyeBound.y-margin.top+window.scrollY},
+			{x: eyeBound.x-margin.right+window.scrollX, y: eyeBound.y-margin.top+window.scrollY},
 			{x: xScale(0), y: equalAngleHeight(eyeBound, pencilBound, pencilBound.y)},
-			{x: (pencilBound.x)-margin.right, y: pencilBound.y-margin.top+window.scrollY}
+			{x: (pencilBound.x)-margin.right+window.scrollX, y: pencilBound.y-margin.top+window.scrollY}
 		];
 	};
 	var dashedRayTop = function(){
-		var imageBound = d3.select("#object-image").node().getBoundingClientRect();
-		return [solidRayTop()[1], {x: imageBound.x-margin.left, y: imageBound.y-margin.top+window.scrollY}];
+		boundUpdate();
+		return [solidRayTop()[1], {x: imageBound.x-margin.left+window.scrollX, y: imageBound.y-margin.top+window.scrollY}];
 	};
 	var dashedRayBottom = function(){
-		var imageBound = d3.select("#object-image").node().getBoundingClientRect();
-		return [solidRayBottom()[1], {x: imageBound.x-margin.right-imageBound.width, y: imageBound.y+imageBound.height-margin.top-8+window.scrollY}];
+		boundUpdate();
+		return [solidRayBottom()[1], {x: imageBound.x-margin.right-imageBound.width+window.scrollX, y: imageBound.y+imageBound.height-margin.top-8+window.scrollY}];
 	};
 	// need to fix positioning soon tomorrow then I can finally move on to curved mirrors
 	var solidRayBottom = function(){
-		eyeBound = d3.select("#eye").node().getBoundingClientRect();
-		pencilBound = d3.select("#object").node().getBoundingClientRect();
+		boundUpdate();
 		return [
-				{x: eyeBound.x-margin.right, y: eyeBound.y-margin.top+window.scrollY},
+				{x: eyeBound.x-margin.right+window.scrollX, y: eyeBound.y-margin.top+window.scrollY},
 				{x: xScale(0), y: equalAngleHeight(eyeBound, pencilBound, pencilBound.y+pencilBound.height-8)},
-				{x: (pencilBound.x)-margin.right, y: pencilBound.y+pencilBound.height-margin.top-8+window.scrollY}
+				{x: (pencilBound.x)-margin.right+window.scrollX, y: pencilBound.y+pencilBound.height-margin.top-8+window.scrollY}
 		];
 	};
 	// calculate the correct angle and height stuff
 	var equalAngleHeight = function(eyeBound, pencilBound, pencilY){
-		var x1 = xScale(0)-eyeBound.x+margin.right;
-		var x2 = xScale(0)-pencilBound.right+margin.right;
+		var x1 = xScale(0)-eyeBound.x+margin.right-window.scrollX;
+		var x2 = xScale(0)-pencilBound.right+margin.right-window.scrollX;
 		// y coordinate of eye * x1 + y coord of pencil * x2 = mystery y coord(x1 + x2)
 		var y1 = eyeBound.y-margin.top+window.scrollY;
 		var y2 = pencilY-margin.top+window.scrollY;
@@ -129,6 +127,77 @@ if (app.name==="Plane Mirror"){
 	}
 }
 else if (app.name === "Convex Lens"){
+	svg.select("#eye").style("visibility", "hidden");
 	var convexLens2Bound = d3.select("#convex-lens2").node().getBoundingClientRect();
 	svg.select("#convex-lens2").attr("transform", "translate(" + (xScale(0)-convexLens2Bound.width/2) + ", " + 0 + ")");
+	var focus = 20;
+	var focusData = [
+		{x: null, y:null},
+		{x: focus, y: 0},
+		{x: -focus, y: 0}
+	];
+	svg.selectAll('circle').data(focusData).enter().append('circle').attr("cx", function(d){return xScale(d.x);}).attr("cy", function(d){return yScale(d.y);}).attr("r", 3).attr('fill', '#000');
+	var extrapolateFocusLine = function(){
+		boundUpdate();
+		var factor = (yScale(0)-(pencilBound.y-margin.top+window.scrollY))/(xScale(-focus)-(pencilBound.x-margin.right+window.scrollX));
+		return yScale(0)+(factor * (xScale(0) - xScale(-focus)));
+	};
+	let solidRayTop = function(){
+		boundUpdate();
+		if(pencilBound.x-margin.right+window.scrollX<xScale(-focus)){
+			return [
+				{x: (pencilBound.x)-margin.right+window.scrollX, y: pencilBound.y-margin.top+window.scrollY},
+				{x: xScale(0), y: pencilBound.y-margin.top+window.scrollY},
+				{x: xScale(focus), y: yScale(0)}
+			];
+		}
+		else {
+			return [
+				{x: xScale(100), y: extrapolateFocusLine()},
+				{x: xScale(0), y: extrapolateFocusLine()},
+				{x: (pencilBound.x)-margin.right+window.scrollX, y: pencilBound.y-margin.top+window.scrollY},
+				{x: xScale(0), y: pencilBound.y-margin.top+window.scrollY},
+				{x: xScale(focus), y: yScale(0)}
+			];
+		}
+	};
+	var rayFocus = function(){
+		boundUpdate();
+		return [
+			{x: (pencilBound.x)-margin.right+window.scrollX, y: pencilBound.y-margin.top+window.scrollY},
+			{x: xScale(-focus), y: yScale(0)},
+			{x: xScale(0), y: extrapolateFocusLine()}
+		];
+	};
+	let line = d3.line().x(function(d){return d.x;}).y(function(d){return d.y;});
+	svg.append("path").attr("d", line(solidRayTop())).attr("stroke-width", 1).attr("stroke", "black").attr("fill", "none").attr("class", "solidRayTop");
+	svg.append("path").attr("d", line(rayFocus())).attr("stroke-width", 1).attr("stroke", "black").attr("fill", "none").attr("class", "rayFocus");
+	var convexLensDrag = d3.drag().on("start", dragstarted).on("drag", dragmove);
+	d3.select("#object").call(convexLensDrag);
+	function dragstarted(){
+		// redraws the object to be on top
+		d3.select(this).raise();
+	}
+	function dragmove(){
+		// gets the bounding rectangle so we can find the center
+		let bound = this.getBoundingClientRect();
+		var x = d3.event.x - (bound.width/2);
+		var y = d3.event.y - (bound.height/2);
+		d3.select(this).attr("transform", "translate("+(Math.min(x, xScale(0)-bound.width))+","+y+")");
+		// svg.select("#object-image").attr("transform", "translate("+(Math.max(xScale(0), xScale(100)-d3.event.x-bound.width/2))+","+(y)+")");
+		d3.select(".solidRayTop").attr("d", line(solidRayTop()));
+		d3.select(".rayFocus").attr("d", line(rayFocus()));
+		if (bound.x-margin.right > xScale(-focus)){
+			d3.select(".rayFocus").attr("stroke-dasharray", "5 10");
+		}
+		else {
+			d3.select(".rayFocus").attr("stroke-dasharray", "none");
+		}
+	}
+}
+function boundUpdate(){
+	pencilBound = d3.select("#object").node().getBoundingClientRect();
+	eyeBound = d3.select("#eye").node().getBoundingClientRect();
+	imageBound = d3.select("#object-image").node().getBoundingClientRect();
+	return [pencilBound, eyeBound, imageBound];
 }
