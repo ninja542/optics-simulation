@@ -68,15 +68,15 @@ if (app.name==="Plane Mirror"){
 	};
 	var dashedRayBottom = function(){
 		boundUpdate();
-		return [solidRayBottom()[1], {x: imageBound.x-margin.right-imageBound.width+window.scrollX, y: imageBound.y+imageBound.height-margin.top-8+window.scrollY}];
+		return [solidRayBottom()[1], {x: imageBound.x-margin.right-imageBound.width+window.scrollX, y: imageBound.y+imageBound.height-margin.top-9+window.scrollY}];
 	};
 	// need to fix positioning soon tomorrow then I can finally move on to curved mirrors
 	var solidRayBottom = function(){
 		boundUpdate();
 		return [
 				{x: eyeBound.x-margin.right+window.scrollX, y: eyeBound.y-margin.top+window.scrollY},
-				{x: xScale(0), y: equalAngleHeight(eyeBound, pencilBound, pencilBound.y+pencilBound.height-8)},
-				{x: (pencilBound.x)-margin.right+window.scrollX, y: pencilBound.y+pencilBound.height-margin.top-8+window.scrollY}
+				{x: xScale(0), y: equalAngleHeight(eyeBound, pencilBound, pencilBound.y+pencilBound.height-9)},
+				{x: (pencilBound.x)-margin.right+window.scrollX, y: pencilBound.y+pencilBound.height-margin.top-9+window.scrollY}
 		];
 	};
 	// calculate the correct angle and height stuff
@@ -93,8 +93,8 @@ if (app.name==="Plane Mirror"){
 	var line = d3.line().x(function(d){return d.x;}).y(function(d){return d.y;});
 	svg.append("path").attr("d", line(solidRayTop())).attr("stroke-width", 1).attr("stroke", "black").attr("fill", "none").attr("class", "solidRayTop");
 	svg.append("path").attr("d", line(dashedRayTop())).attr("stroke-width", 1).attr("stroke", "black").attr("fill", "none").attr("stroke-dasharray", "5, 10").attr("class", "dashedRayTop");
-	svg.append("path").attr("d", line(solidRayBottom())).attr("stroke-width", 1).attr("stroke", "black").attr("fill", "none").attr("class", "solidRayBottom");
-	svg.append("path").attr("d", line(dashedRayBottom())).attr("stroke-width", 1).attr("stroke", "black").attr("fill", "none").attr("stroke-dasharray", "5, 10").attr("class", "dashedRayBottom");
+	svg.append("path").attr("d", line(solidRayBottom())).attr("stroke-width", 1).attr("stroke", "red").attr("fill", "none").attr("class", "solidRayBottom");
+	svg.append("path").attr("d", line(dashedRayBottom())).attr("stroke-width", 1).attr("stroke", "red").attr("fill", "none").attr("stroke-dasharray", "5, 10").attr("class", "dashedRayBottom");
 
 	// general drag code for non circle things
 	var mirrorDrag = d3.drag().on("start", dragstarted).on("drag", dragmove);
@@ -137,10 +137,26 @@ else if (app.name === "Convex Lens"){
 		{x: -focus, y: 0}
 	];
 	svg.selectAll('circle').data(focusData).enter().append('circle').attr("cx", function(d){return xScale(d.x);}).attr("cy", function(d){return yScale(d.y);}).attr("r", 3).attr('fill', '#000');
-	var extrapolateFocusLine = function(){
+	// paramter option is what is known
+	var extrapolateFocusLine = function(option){
 		boundUpdate();
-		var factor = (yScale(0)-(pencilBound.y-margin.top+window.scrollY))/(xScale(-focus)-(pencilBound.x-margin.right+window.scrollX));
-		return yScale(0)+(factor * (xScale(0) - xScale(-focus)));
+		let factor = (yScale(0)-(pencilBound.y-margin.top+window.scrollY))/(xScale(-focus)-(pencilBound.x-margin.right+window.scrollX));
+		if (option.includes("x")){
+			if (option.includes("bottom")==true){
+				factor = (yScale(0)-(pencilBound.y+pencilBound.height-margin.top+window.scrollY))/(xScale(-focus)-(pencilBound.x-margin.right+window.scrollX));
+			}
+			return yScale(0)+(factor * (xScale(0) - xScale(-focus)));
+		}
+		else if (option.includes("y")){
+			if (option.includes("bottom") == true){
+				factor = ((pencilBound.y+pencilBound.height-9-margin.top+window.scrollY)-yScale(0))/(xScale(focus)-xScale(0));
+				return (factor * (xScale(100) - xScale(focus)))-yScale(0);
+			}
+			else {
+				factor = (yScale(0)-(pencilBound.y-margin.top+window.scrollY))/(xScale(focus)-xScale(0));
+				return yScale(0)+(factor * (xScale(100) - xScale(focus)));
+			}
+		}
 	};
 	let solidRayTop = function(){
 		boundUpdate();
@@ -148,16 +164,39 @@ else if (app.name === "Convex Lens"){
 			return [
 				{x: (pencilBound.x)-margin.right+window.scrollX, y: pencilBound.y-margin.top+window.scrollY},
 				{x: xScale(0), y: pencilBound.y-margin.top+window.scrollY},
-				{x: xScale(focus), y: yScale(0)}
+				{x: xScale(focus), y: yScale(0)},
+				{x: xScale(100), y: extrapolateFocusLine("y")}
 			];
 		}
 		else {
 			return [
-				{x: xScale(100), y: extrapolateFocusLine()},
-				{x: xScale(0), y: extrapolateFocusLine()},
+				{x: xScale(100), y: extrapolateFocusLine("x")},
+				{x: xScale(0), y: extrapolateFocusLine("x")},
 				{x: (pencilBound.x)-margin.right+window.scrollX, y: pencilBound.y-margin.top+window.scrollY},
 				{x: xScale(0), y: pencilBound.y-margin.top+window.scrollY},
-				{x: xScale(focus), y: yScale(0)}
+				{x: xScale(focus), y: yScale(0)},
+				{x: xScale(100), y: extrapolateFocusLine('y')}
+			];
+		}
+	};
+	let solidRayBottom = function(){
+		boundUpdate();
+		if(pencilBound.x-margin.right+window.scrollX<xScale(-focus)){
+			return [
+				{x: (pencilBound.x)-margin.right+window.scrollX, y: pencilBound.y+pencilBound.height-margin.top-9+window.scrollY},
+				{x: xScale(0), y: pencilBound.y+pencilBound.height-margin.top-9+window.scrollY},
+				{x: xScale(focus), y: yScale(0)},
+				{x: xScale(100), y: -extrapolateFocusLine("y bottom")}
+			];
+		}
+		else {
+			return [
+				{x: xScale(100), y: extrapolateFocusLine("x bottom")},
+				{x: xScale(0), y: extrapolateFocusLine("x bottom")},
+				{x: (pencilBound.x)-margin.right+window.scrollX, y: pencilBound.y+pencilBound.height-margin.top-9+window.scrollY},
+				{x: xScale(0), y: pencilBound.y+pencilBound.height-margin.top-9+window.scrollY},
+				{x: xScale(focus), y: yScale(0)},
+				{x: xScale(100), y: -extrapolateFocusLine('y bottom')}
 			];
 		}
 	};
@@ -166,12 +205,24 @@ else if (app.name === "Convex Lens"){
 		return [
 			{x: (pencilBound.x)-margin.right+window.scrollX, y: pencilBound.y-margin.top+window.scrollY},
 			{x: xScale(-focus), y: yScale(0)},
-			{x: xScale(0), y: extrapolateFocusLine()}
+			{x: xScale(0), y: extrapolateFocusLine("x")},
+			{x: xScale(100), y: extrapolateFocusLine("x")}
+		];
+	};
+	var rayFocusBottom = function(){
+		boundUpdate();
+		return [
+			{x: (pencilBound.x)-margin.right+window.scrollX, y: pencilBound.y+pencilBound.height-margin.top-9+window.scrollY},
+			{x: xScale(-focus), y: yScale(0)},
+			{x: xScale(0), y: extrapolateFocusLine("x bottom")},
+			{x: xScale(100), y: extrapolateFocusLine("x bottom")}
 		];
 	};
 	let line = d3.line().x(function(d){return d.x;}).y(function(d){return d.y;});
 	svg.append("path").attr("d", line(solidRayTop())).attr("stroke-width", 1).attr("stroke", "black").attr("fill", "none").attr("class", "solidRayTop");
 	svg.append("path").attr("d", line(rayFocus())).attr("stroke-width", 1).attr("stroke", "black").attr("fill", "none").attr("class", "rayFocus");
+	svg.append("path").attr("d", line(solidRayBottom())).attr("stroke-width", 1).attr("stroke", "red").attr("fill", "none").attr("class", "solidRayBottom");
+	svg.append('path').attr("d", line(rayFocusBottom())).attr("stroke-width", 1).attr("stroke", "red").attr("fill", "none").attr("class", "rayFocusBottom");
 	var convexLensDrag = d3.drag().on("start", dragstarted).on("drag", dragmove);
 	d3.select("#object").call(convexLensDrag);
 	function dragstarted(){
@@ -187,11 +238,15 @@ else if (app.name === "Convex Lens"){
 		// svg.select("#object-image").attr("transform", "translate("+(Math.max(xScale(0), xScale(100)-d3.event.x-bound.width/2))+","+(y)+")");
 		d3.select(".solidRayTop").attr("d", line(solidRayTop()));
 		d3.select(".rayFocus").attr("d", line(rayFocus()));
+		d3.select(".solidRayBottom").attr("d", line(solidRayBottom()));
+		d3.select(".rayFocusBottom").attr("d", line(rayFocusBottom()));
 		if (bound.x-margin.right > xScale(-focus)){
 			d3.select(".rayFocus").attr("stroke-dasharray", "5 10");
+			d3.select('.rayFocusBottom').attr("stroke-dasharray", "5 10");
 		}
 		else {
 			d3.select(".rayFocus").attr("stroke-dasharray", "none");
+			d3.select(".rayFocusBottom").attr("stroke-dasharray", "none");
 		}
 	}
 }
