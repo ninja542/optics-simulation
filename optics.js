@@ -143,9 +143,12 @@ else if (app.name === "Convex Lens"){
 		let factor = (yScale(0)-(pencilBound.y-margin.top+window.scrollY))/(xScale(-focus)-(pencilBound.x-margin.right+window.scrollX));
 		if (option.includes("x")){
 			if (option.includes("bottom")==true){
-				factor = (yScale(0)-(pencilBound.y+pencilBound.height-margin.top+window.scrollY))/(xScale(-focus)-(pencilBound.x-margin.right+window.scrollX));
+				factor = ((pencilBound.y+pencilBound.height-margin.top-9+window.scrollY)-yScale(0))/(xScale(-focus)-(pencilBound.x-margin.right+window.scrollX));
+					return yScale(0)-(factor * (xScale(0) - xScale(-focus)));
 			}
-			return yScale(0)+(factor * (xScale(0) - xScale(-focus)));
+			else {
+				return yScale(0)+(factor * (xScale(0) - xScale(-focus)));
+			}
 		}
 		else if (option.includes("y")){
 			if (option.includes("bottom") == true){
@@ -240,7 +243,7 @@ else if (app.name === "Convex Lens"){
 		d3.select(".rayFocus").attr("d", line(rayFocus()));
 		d3.select(".solidRayBottom").attr("d", line(solidRayBottom()));
 		d3.select(".rayFocusBottom").attr("d", line(rayFocusBottom()));
-		if (bound.x-margin.right > xScale(-focus)){
+		if (bound.x-margin.right+window.scrollX > xScale(-focus)){
 			d3.select(".rayFocus").attr("stroke-dasharray", "5 10");
 			d3.select('.rayFocusBottom').attr("stroke-dasharray", "5 10");
 		}
