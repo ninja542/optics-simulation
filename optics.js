@@ -203,7 +203,7 @@ else if (app.name === "Convex Lens"){
 			];
 		}
 	};
-	var rayFocus = function(){
+	let rayFocus = function(){
 		boundUpdate();
 		return [
 			{x: (pencilBound.x)-margin.right+window.scrollX, y: pencilBound.y-margin.top+window.scrollY},
@@ -212,13 +212,27 @@ else if (app.name === "Convex Lens"){
 			{x: xScale(100), y: extrapolateFocusLine("x")}
 		];
 	};
-	var rayFocusBottom = function(){
+	let rayFocusBottom = function(){
 		boundUpdate();
 		return [
-			{x: (pencilBound.x)-margin.right+window.scrollX, y: pencilBound.y+pencilBound.height-margin.top-9+window.scrollY},
+			{x: pencilBound.x-margin.right+window.scrollX, y: pencilBound.y+pencilBound.height-margin.top-9+window.scrollY},
 			{x: xScale(-focus), y: yScale(0)},
 			{x: xScale(0), y: extrapolateFocusLine("x bottom")},
 			{x: xScale(100), y: extrapolateFocusLine("x bottom")}
+		];
+	};
+	let dashedLineTop = function(){
+		boundUpdate();
+		return [
+			{x: xScale(0), y: extrapolateFocusLine("x")},
+			{x: xScale(-100), y: extrapolateFocusLine('x')}
+		];
+	};
+	let dashedLineBottom = function(){
+		boundUpdate();
+		return [
+			{x: xScale(0), y: extrapolateFocusLine("x bottom")},
+			{x: xScale(-100), y: extrapolateFocusLine('x bottom')}
 		];
 	};
 	let line = d3.line().x(function(d){return d.x;}).y(function(d){return d.y;});
@@ -226,6 +240,8 @@ else if (app.name === "Convex Lens"){
 	svg.append("path").attr("d", line(rayFocus())).attr("stroke-width", 1).attr("stroke", "black").attr("fill", "none").attr("class", "rayFocus");
 	svg.append("path").attr("d", line(solidRayBottom())).attr("stroke-width", 1).attr("stroke", "red").attr("fill", "none").attr("class", "solidRayBottom");
 	svg.append('path').attr("d", line(rayFocusBottom())).attr("stroke-width", 1).attr("stroke", "red").attr("fill", "none").attr("class", "rayFocusBottom");
+	svg.append("path").attr("d", line(dashedLineTop())).attr("stroke-width", 1).attr("stroke", "black").attr("fill", "none").attr("class", "dashedLineTop").attr("stroke-dasharray", "5 10").attr("visibility", "hidden");
+	svg.append("path").attr("d", line(dashedLineBottom())).attr("stroke-width", 1).attr("stroke", "red").attr("fill", "none").attr("class", "dashedLineBottom").attr("stroke-dasharray", "5 10").attr("visibility", "hidden");
 	var convexLensDrag = d3.drag().on("start", dragstarted).on("drag", dragmove);
 	d3.select("#object").call(convexLensDrag);
 	function dragstarted(){
@@ -239,17 +255,28 @@ else if (app.name === "Convex Lens"){
 		var y = d3.event.y - (bound.height/2);
 		d3.select(this).attr("transform", "translate("+(Math.min(x, xScale(0)-bound.width))+","+y+")");
 		// svg.select("#object-image").attr("transform", "translate("+(Math.max(xScale(0), xScale(100)-d3.event.x-bound.width/2))+","+(y)+")");
-		d3.select(".solidRayTop").attr("d", line(solidRayTop()));
-		d3.select(".rayFocus").attr("d", line(rayFocus()));
-		d3.select(".solidRayBottom").attr("d", line(solidRayBottom()));
-		d3.select(".rayFocusBottom").attr("d", line(rayFocusBottom()));
-		if (bound.x-margin.right+window.scrollX > xScale(-focus)){
-			d3.select(".rayFocus").attr("stroke-dasharray", "5 10");
-			d3.select('.rayFocusBottom').attr("stroke-dasharray", "5 10");
+		if (bound.x-margin.right+window.scrollX !== xScale(-focus)){
+			d3.selectAll(".solidRayTop").attr("d", line(solidRayTop()));
+			d3.select(".rayFocus").attr("d", line(rayFocus()));
+			d3.select(".solidRayBottom").attr("d", line(solidRayBottom()));
+			d3.select(".rayFocusBottom").attr("d", line(rayFocusBottom()));
+			d3.select('.dashedLineTop').attr("d", line(dashedLineTop()));
+			d3.select('.dashedLineBottom').attr("d", line(dashedLineBottom()));
+			d3.select(".dashedLineTop").attr("visibility", "hidden");
+			d3.select(".dashedLineBottom").attr("visibility", "hidden");
+			if (bound.x-margin.right+window.scrollX > xScale(-focus)){
+				d3.select(".rayFocus").attr("stroke-dasharray", "5 10");
+				d3.select('.rayFocusBottom').attr("stroke-dasharray", "5 10");
+				d3.select(".dashedLineTop").attr("visibility", "visible");
+				d3.select(".dashedLineBottom").attr("visibility", "visible");
+			}
+			else {
+				d3.select(".rayFocus").attr("stroke-dasharray", "none");
+				d3.select(".rayFocusBottom").attr("stroke-dasharray", "none");
+			}
 		}
 		else {
-			d3.select(".rayFocus").attr("stroke-dasharray", "none");
-			d3.select(".rayFocusBottom").attr("stroke-dasharray", "none");
+			console.log("save");
 		}
 	}
 }
