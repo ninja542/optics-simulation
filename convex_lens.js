@@ -137,10 +137,18 @@ let objectImageScale = function(){
 	let h = extrapolateFocusLine("x")-extrapolateFocusLine("x bottom");
 	let imageScale = h/pencilBound.height;
 	// svg.append('path').attr("d", "M"+(xScale(0)+di)+","+extrapolateFocusLine("x")+"v"+(-h)).attr("stroke", "red").attr("stroke-width", 5).attr("class", "test2");
-	d3.select("#object-image").attr("transform", "rotate(180," + imageBound.width/2 + "," + imageBound.height/2 + ") scale("+imageScale+") translate(" + (-(xScale(0)+di)/imageScale) + ", " + ((h-extrapolateFocusLine("x"))/imageScale) + ")");
 	return di+window.scrollX;
 };
-objectImageScale();
+let objectScalePosition = function(){
+	boundUpdate();
+	let f = xScale(0) - xScale(-focus);
+	let d0 = xScale(0) - (pencilBound.x - margin.right - window.scrollX);
+	let di = 1/((1/f)-(1/d0));
+	let h = extrapolateFocusLine("x")-extrapolateFocusLine("x bottom");
+	let imageScale = h/pencilBound.height;
+	d3.select("#object-image").attr("transform", "rotate(180," + imageBound.width/2 + "," + imageBound.height/2 + ") scale("+imageScale+") translate(" + (-(xScale(0)+di+window.scrollX)/imageScale) + ", " + ((h-extrapolateFocusLine("x"))/imageScale) + ")");
+	return [imageScale, di+window.scrollX];
+};
 // line to test di
 // svg.append('path').attr("d", "M"+xScale(0)+","+yScale(0)+"h"+objectImageScale()).attr("stroke", "black").attr("stroke-width", 5).attr("class", "test");
 var convexLensDrag = d3.drag().on("start", dragstarted).on("drag", dragmove);
