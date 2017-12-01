@@ -15,6 +15,17 @@ var svg = d3.select('#simulation')
 		.select('#transform')
 		.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
+// implement graph
+// x axis scaling stuff
+var xScale = d3.scaleLinear().domain([-100, 100]).range([0, width]);
+var xAxis = d3.axisBottom(xScale);
+// y axis scaling stuff
+var yScale = d3.scaleLinear().domain([100, -100]).range([0, height]);
+var yAxis = d3.axisLeft(yScale);
+// make the axes
+svg.append("g").call(xAxis).attr("transform", "translate(" + 0 + ", " + yScale(0) + ")");
+svg.append("g").call(yAxis).attr("transform", "translate(" + xScale(0) + ", " + 0 + ")");
+
 // variable thing to get the circle drag to work
 var circleEye = [
 		{x: 0, y: 0}
@@ -27,21 +38,10 @@ var eye = svg.selectAll("circle").data(circleEye).enter().append('circle')
 		.style('fill', '#000')
 		.attr("id", "eye");
 
-// implement graph
-// x axis scaling stuff
-var xScale = d3.scaleLinear().domain([-100, 100]).range([0, width]);
-var xAxis = d3.axisBottom(xScale);
-// y axis scaling stuff
-var yScale = d3.scaleLinear().domain([100, -100]).range([0, height]);
-var yAxis = d3.axisLeft(yScale);
-// make the axes
-svg.append("g").call(xAxis).attr("transform", "translate(" + 0 + ", " + yScale(0) + ")");
-svg.append("g").call(yAxis).attr("transform", "translate(" + xScale(0) + ", " + 0 + ")");
-
+var eyeBound = d3.select("#eye").node().getBoundingClientRect();
 // variables for getting center of mirror, object, etc
 var mirrorBound = d3.select('#mirror').node().getBoundingClientRect();
 var pencilBound = d3.select("#object").node().getBoundingClientRect();
-var eyeBound = d3.select("#eye").node().getBoundingClientRect();
 
 // positioning things at the start
 d3.select("#mirror").attr("transform", "translate(" + (xScale(0)) + ", " + (yScale(0) - mirrorBound.height/2) + ")");
@@ -127,7 +127,7 @@ if (app.name === "Plane Mirror"){
 	}
 }
 else if (app.name === "Convex Lens"){
-	svg.select("#eye").style("visibility", "hidden");
+	d3.select("#eye").attr("visibility", "hidden");
 	var convexLens2Bound = d3.select("#convex-lens2").node().getBoundingClientRect();
 	svg.select("#convex-lens2").attr("transform", "translate(" + (xScale(0)-convexLens2Bound.width/2) + ", " + 0 + ")");
 	var focus = 20;
@@ -325,9 +325,30 @@ else if (app.name === "Convex Lens"){
 		}
 	}
 }
+d3.select("#convex-lens").on("click", function(){
+	d3.select(".rayFocus").style('opacity', 1);
+	d3.select(".rayFocusBottom").style('opacity', 1);
+	d3.select(".dashedExtraTop").style('opacity', 1);
+	d3.select(".dashedExtraBottom").style('opacity', 1);
+	d3.select("#eye").attr("visibility", "hidden");
+	console.log("yo");
+});
+d3.select("#plane-mirror").on("click", function(){
+	d3.select(".rayFocus").style('opacity', 0);
+	d3.select(".rayFocusBottom").style('opacity', 0);
+	d3.select(".dashedExtraTop").style('opacity', 0);
+	d3.select(".dashedExtraBottom").style('opacity', 0);
+	d3.select("#eye").attr("visibility", "visible");
+	console.log("PLAnE");
+});
 function boundUpdate(){
 	pencilBound = d3.select("#object").node().getBoundingClientRect();
-	eyeBound = d3.select("#eye").node().getBoundingClientRect();
 	imageBound = d3.select("#object-image").node().getBoundingClientRect();
-	return [pencilBound, eyeBound, imageBound];
+	if (app.name === "Plane Mirror"){
+		eyeBound = d3.select("#eye").node().getBoundingClientRect();
+		return [pencilBound, eyeBound, imageBound];
+	}
+	else {
+		return [pencilBound, imageBound];
+	}
 }
