@@ -14,7 +14,7 @@ var app = new Vue({
 		}
 	},
 	// trying to get the position of everything correct
-	beforeMount: function(){
+	mounted: function(){
 		convexLensRay();
 	}
 });
@@ -372,7 +372,7 @@ d3.select("#plane-mirror").on("click", function(){
 	d3.select("#eye").attr("visibility", "visible");
 	d3.select(".dashedRayTop").style('opacity', 1);
 	d3.select(".dashedRayBottom").style('opacity', 1);
-	d3.select(".cls-1").style("fill", "rgba(255, 255, 0, 0.5)");
+	d3.select(".cls-1").style("fill", "rgba(13, 159, 241, 0.5)");
 	d3.selectAll(".focusData").attr("visibility", "hidden");
 	planeMirrorRay();
 });
