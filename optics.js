@@ -11,6 +11,9 @@ var app = new Vue({
 			else if (this.name==="Convex Lens"){
 				convexLensRay();
 			}
+			else if (this.name==="Convex Mirror"){
+				convexMirrorRay();
+			}
 		}
 	},
 	// trying to get the position of everything correct
@@ -88,7 +91,7 @@ function planeMirrorRay (){
 		// plane mirror ray tracing
 		return [
 			{x: eyeBound.x - margin.right + window.scrollX, y: eyeBound.y - margin.top + window.scrollY},
-			{x: xScale(0), y: equalAngleHeight(eyeBound, pencilBound, pencilBound.y)},
+			{x: xScale(0), y: equalAngleHeight(pencilBound.y)},
 			{x: pencilBound.x - margin.right + window.scrollX, y: pencilBound.y - margin.top + window.scrollY}
 		];
 	};
@@ -105,14 +108,15 @@ function planeMirrorRay (){
 		boundUpdate();
 		return [
 				{x: eyeBound.x- margin.right + window.scrollX, y: eyeBound.y - margin.top + window.scrollY},
-				{x: xScale(0), y: equalAngleHeight(eyeBound, pencilBound, pencilBound.y + pencilBound.height - 9)},
+				{x: xScale(0), y: equalAngleHeight(pencilBound.y + pencilBound.height - 9)},
 				{x: pencilBound.x - margin.right + window.scrollX, y: pencilBound.y + pencilBound.height - margin.top - 9 + window.scrollY}
 		];
 	};
 	// calculate the correct angle and height stuff
-	let equalAngleHeight = function(eyeBound, pencilBound, pencilY){
+	let equalAngleHeight = function(pencilY){
+		boundUpdate();
 		var x1 = xScale(0) - eyeBound.x + margin.right - window.scrollX;
-		var x2 = xScale(0) - pencilBound.right + margin.right - window.scrollX;
+		var x2 = xScale(0) - pencilBound.x + margin.right - window.scrollX;
 		// y coordinate of eye * x1 + y coord of pencil * x2 = mystery y coord(x1 + x2)
 		var y1 = eyeBound.y - margin.top + window.scrollY;
 		var y2 = pencilY - margin.top + window.scrollY;
@@ -283,8 +287,6 @@ function convexLensRay(){
 		let di = 1/((1/f)-(1/d0));
 		let h = extrapolateFocusLine("x")-extrapolateFocusLine("x bottom");
 		let imageScale = h/pencilBound.height;
-		// svg.append('path').attr("d", "M"+(xScale(0)+di)+","+extrapolateFocusLine("x")+"v"+(-h)).attr("stroke", "red").attr("stroke-width", 5).attr("class", "test2");
-		// d3.select("#object-image").attr("transform", "rotate(180," + imageBound.width/2 + "," + imageBound.height/2 + ") scale("+imageScale+") translate(" + (-(xScale(0)+di)/imageScale) + ", " + ((h-extrapolateFocusLine("x"))/imageScale) + ")");
 		if (pencilBound.x-margin.right+window.scrollX > xScale(-focus)){
 			d3.select("#object-image").attr("transform", "rotate(180) scale("+imageScale+") translate(" + (-(xScale(0)+di-imageBound.width)/imageScale) + ", " + ((-extrapolateFocusLine("x"))/imageScale) + ")");
 			d3.select(".cls-1").style("fill", "rgba(13, 159, 241, 0.5)");
@@ -313,7 +315,6 @@ function convexLensRay(){
 			d3.select(".dashedLineBottom").attr("visibility", "hidden");
 			d3.select(".dashedExtraTop").attr("visibility", "hidden");
 			d3.select(".dashedExtraBottom").attr("visibility", "hidden");
-			// d3.select(".test").attr("d", "M"+xScale(0)+","+yScale(0)+"h"+objectImageScale()).attr("stroke", "black").attr("stroke-width", 5);
 			objectImageScale();
 			if (pencilBound.x-margin.right+window.scrollX > xScale(-focus)){
 				d3.select(".rayFocus").attr("stroke-dasharray", "5 10");
@@ -331,7 +332,6 @@ function convexLensRay(){
 	}
 	updateLines();
 	// line to test di
-	// svg.append('path').attr("d", "M"+xScale(0)+","+yScale(0)+"h"+objectImageScale()).attr("stroke", "black").attr("stroke-width", 5).attr("class", "test");
 	var convexLensDrag = d3.drag().on("start", dragstarted).on("drag", dragmove);
 	d3.select("#object").call(convexLensDrag);
 	function dragstarted(){
@@ -345,7 +345,74 @@ function convexLensRay(){
 		var y = d3.event.y - (bound.height/2);
 		d3.select(this).attr("transform", "translate("+(Math.min(x, xScale(0)-bound.width))+","+y+")");
 		updateLines();
-		// svg.select("#object-image").attr("transform", "translate("+(Math.max(xScale(0), xScale(100)-d3.event.x-bound.width/2))+","+(y)+")");
+	}
+}
+function convexMirrorRay(){
+	let extrapolateFocusLine = function(option, point = focus, yStart = yScale(0)){
+		boundUpdate();
+		let factor = (yScale(0) - (pencilBound.y - margin.top + window.scrollY))/(xScale(-focus) - (pencilBound.x - margin.right + window.scrollX));
+		if (option.includes("x")){
+			if (option.includes("bottom")){
+				factor = ((pencilBound.y + pencilBound.height - margin.top - 9 + window.scrollY) - yScale(0))/(xScale(-focus) - (pencilBound.x - margin.right + window.scrollX));
+					return yScale(0) - (factor * (xScale(0) - xScale(-focus)));
+			}
+			else {
+				return yScale(0) + (factor * (xScale(0) - xScale(-focus)));
+			}
+		}
+		else if (option.includes("y")){
+			if (option.includes("bottom")){
+				factor = ((pencilBound.y + pencilBound.height - 9 - margin.top + window.scrollY) - yScale(0))/(xScale(focus) - xScale(0));
+				return (factor * (xScale(100) - xScale(point)) - yStart);
+			}
+			else {
+				factor = (yScale(0) - (pencilBound.y - margin.top + window.scrollY))/(xScale(focus) - xScale(0));
+				return yStart + (factor * (xScale(100) - xScale(point)));
+			}
+		}
+	};
+	let solidRayTop = function(){
+		boundUpdate();
+		if(pencilBound.x - margin.right + window.scrollX < xScale(-focus)){
+			return [
+				{x: pencilBound.x - margin.right + window.scrollX, y: pencilBound.y - margin.top + window.scrollY},
+				{x: xScale(0), y: pencilBound.y - margin.top + window.scrollY},
+				{x: xScale(focus), y: yScale(0)},
+				{x: xScale(100), y: extrapolateFocusLine("y")}
+			];
+		}
+	};
+	let objectImageScale = function(){
+		// doing math rip
+		boundUpdate();
+		let f = xScale(0) - xScale(-focus);
+		let d0 = xScale(0) - (pencilBound.x - margin.right - window.scrollX);
+		let di = 1/((1/f)-(1/d0));
+		let h = extrapolateFocusLine("x")-extrapolateFocusLine("x bottom");
+		let imageScale = h/pencilBound.height;
+		if (pencilBound.x-margin.right+window.scrollX > xScale(-focus)){
+			d3.select("#object-image").attr("transform", "rotate(180) scale("+imageScale+") translate(" + (-(xScale(0)+di-imageBound.width)/imageScale) + ", " + ((-extrapolateFocusLine("x"))/imageScale) + ")");
+			d3.select(".cls-1").style("fill", "rgba(13, 159, 241, 0.5)");
+		}
+	};
+	objectImageScale();
+	function updateLines(){
+		boundUpdate();
+		d3.select(".solidRayTop").attr("d", line(solidRayTop()));
+		d3.select(".rayFocus").attr("d", line(rayFocus()));
+		d3.select(".solidRayBottom").attr("d", line(solidRayBottom()));
+		d3.select(".rayFocusBottom").attr("d", line(rayFocusBottom()));
+		d3.select('.dashedLineTop').attr("d", line(dashedLineTop()));
+		d3.select('.dashedLineBottom').attr("d", line(dashedLineBottom()));
+		d3.select(".dashedExtraTop").attr("d", line(dashedExtraTop()));
+		d3.select(".dashedExtraBottom").attr("d", line(dashedExtraBottom()));
+		objectImageScale();
+		d3.select(".rayFocus").attr("stroke-dasharray", "5 10");
+		d3.select('.rayFocusBottom').attr("stroke-dasharray", "5 10");
+		d3.select(".dashedLineTop").attr("visibility", "visible");
+		d3.select(".dashedLineBottom").attr("visibility", "visible");
+		d3.select(".dashedExtraTop").attr("visibility", "visible");
+		d3.select(".dashedExtraBottom").attr("visibility", "visible");
 	}
 }
 // runs stuff depending on which button is clicked.
