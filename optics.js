@@ -1,7 +1,7 @@
 var app = new Vue({
 	el: "#wrapper",
 	data: {
-		name: "Convex Lens",
+		name: "",
 	},
 	watch:  {
 		name: function() {
@@ -16,9 +16,8 @@ var app = new Vue({
 			}
 		}
 	},
-	// trying to get the position of everything correct
 	mounted: function(){
-		convexLensRay();
+		this.name = "Convex Lens";
 	}
 });
 
@@ -82,6 +81,13 @@ d3.select("#eye").attr("transform", "translate(" + xScale(-40) + ", " + yScale(4
 svg.select("#object-image").attr("transform", "translate("+(xScale(40) - pencilBound.width/2)+","+(yScale(0)-pencilBound.height/2)+")");
 
 // ray tracing code
+var focus = 20;
+var focusData = [
+	{x: null, y:null},
+	{x: focus, y: 0},
+	{x: -focus, y: 0}
+];
+svg.selectAll('circle').data(focusData).enter().append('circle').attr("cx", function(d){ return xScale(d.x); }).attr("cy", function(d){return yScale(d.y);}).attr("r", 3).attr('fill', '#000').attr("class", "focusData");
 //plane mirror
 // if (app.name==="Plane Mirror"){
 function planeMirrorRay (){
@@ -159,13 +165,6 @@ function convexLensRay(){
 	d3.select("#eye").attr("visibility", "hidden");
 	var convexLens2Bound = d3.select("#convex-lens2").node().getBoundingClientRect();
 	svg.select("#convex-lens2").attr("transform", "translate(" + (xScale(0)-convexLens2Bound.width/2) + ", " + 0 + ")");
-	var focus = 20;
-	var focusData = [
-		{x: null, y:null},
-		{x: focus, y: 0},
-		{x: -focus, y: 0}
-	];
-	svg.selectAll('circle').data(focusData).enter().append('circle').attr("cx", function(d){ return xScale(d.x); }).attr("cy", function(d){return yScale(d.y);}).attr("r", 3).attr('fill', '#000').attr("class", "focusData");
 	// paramter option is what is known
 	let extrapolateFocusLine = function(option, point = focus, yStart = yScale(0)){
 		boundUpdate();
@@ -282,13 +281,13 @@ function convexLensRay(){
 	let objectImageScale = function(){
 		// doing math rip
 		boundUpdate();
-		let f = xScale(0) - xScale(-focus);
+		let f = xScale(focus) - xScale(0);
 		let d0 = xScale(0) - (pencilBound.x - margin.right - window.scrollX);
 		let di = 1/((1/f)-(1/d0));
 		let h = extrapolateFocusLine("x")-extrapolateFocusLine("x bottom");
 		let imageScale = h/pencilBound.height;
 		if (pencilBound.x-margin.right+window.scrollX > xScale(-focus)){
-			d3.select("#object-image").attr("transform", "rotate(180) scale("+imageScale+") translate(" + (-(xScale(0)+di-imageBound.width)/imageScale) + ", " + ((-extrapolateFocusLine("x"))/imageScale) + ")");
+			d3.select("#object-image").attr("transform", "rotate(180) scale("+imageScale+") translate(" + (-(xScale(0)+di-imageBound.width-window.scrollX)/imageScale) + ", " + ((-extrapolateFocusLine("x"))/imageScale) + ")");
 			d3.select(".cls-1").style("fill", "rgba(13, 159, 241, 0.5)");
 		}
 		else {
@@ -331,7 +330,6 @@ function convexLensRay(){
 		}
 	}
 	updateLines();
-	// line to test di
 	var convexLensDrag = d3.drag().on("start", dragstarted).on("drag", dragmove);
 	d3.select("#object").call(convexLensDrag);
 	function dragstarted(){
@@ -348,12 +346,14 @@ function convexLensRay(){
 	}
 }
 function convexMirrorRay(){
+	var convexMirror2Bound = d3.select("#convex-mirror2").node().getBoundingClientRect();
+	d3.select("#convex-mirror2").attr("transform", "translate(" + (xScale(0)-convexMirror2Bound.width/2) + ", " + 0 + ")");
 	let extrapolateFocusLine = function(option, point = focus, yStart = yScale(0)){
 		boundUpdate();
-		let factor = (yScale(0) - (pencilBound.y - margin.top + window.scrollY))/(xScale(-focus) - (pencilBound.x - margin.right + window.scrollX));
+		let factor = (yScale(0) - (pencilBound.y - margin.top + window.scrollY))/(xScale(point) - (pencilBound.x - margin.right + window.scrollX));
 		if (option.includes("x")){
 			if (option.includes("bottom")){
-				factor = ((pencilBound.y + pencilBound.height - margin.top - 9 + window.scrollY) - yScale(0))/(xScale(-focus) - (pencilBound.x - margin.right + window.scrollX));
+				factor = ((pencilBound.y + pencilBound.height - margin.top - 9 + window.scrollY) - yScale(0))/(xScale(point) - (pencilBound.x - margin.right + window.scrollX));
 					return yScale(0) - (factor * (xScale(0) - xScale(-focus)));
 			}
 			else {
@@ -373,27 +373,76 @@ function convexMirrorRay(){
 	};
 	let solidRayTop = function(){
 		boundUpdate();
-		if(pencilBound.x - margin.right + window.scrollX < xScale(-focus)){
-			return [
-				{x: pencilBound.x - margin.right + window.scrollX, y: pencilBound.y - margin.top + window.scrollY},
-				{x: xScale(0), y: pencilBound.y - margin.top + window.scrollY},
-				{x: xScale(focus), y: yScale(0)},
-				{x: xScale(100), y: extrapolateFocusLine("y")}
-			];
-		}
+		return [
+			{x: pencilBound.x - margin.right + window.scrollX, y: pencilBound.y - margin.top + window.scrollY},
+			{x: xScale(0), y: pencilBound.y - margin.top + window.scrollY},
+			// {x: xScale(focus), y: yScale(0)},
+			{x: xScale(-100), y: 2*(pencilBound.y-margin.top+window.scrollY)-extrapolateFocusLine("y", 0, pencilBound.y-margin.top+window.scrollY)}
+		];
+	};
+	let rayFocus = function(){
+		boundUpdate();
+		return [
+			{x: xScale(0), y: pencilBound.y - margin.top + window.scrollY},
+			{x: xScale(focus), y: yScale(0)}
+		];
+	};
+	let solidRayBottom = function(){
+		boundUpdate();
+		return [
+			{x: pencilBound.x - margin.right + window.scrollX, y: pencilBound.y + pencilBound.height - 9 - margin.top + window.scrollY},
+			{x: xScale(0), y: pencilBound.y +pencilBound.height - 9 - margin.top + window.scrollY},
+			// {x: xScale(focus), y: yScale(0)},
+			{x: xScale(-100), y: 2*(pencilBound.y+pencilBound.height-9-margin.top+window.scrollY)+extrapolateFocusLine("y bottom", 0, pencilBound.y+pencilBound.height-9-margin.top+window.scrollY)}
+		];
+	};
+	let rayFocusBottom = function(){
+		boundUpdate();
+		return [
+			{x: xScale(0), y: pencilBound.y + pencilBound.height - 9- margin.top + window.scrollY},
+			{x: xScale(focus), y: yScale(0)}
+		];
+	};
+	let dashedExtraTop = function(){
+		boundUpdate();
+		return [
+			{x: pencilBound.x - margin.right + window.scrollX, y: pencilBound.y - margin.top + window.scrollY},
+			{x: xScale(0), y: 2*yScale(0)-extrapolateFocusLine("x", focus, pencilBound.y + pencilBound.height - 9 - margin.top + window.scrollY)},
+			{x: xScale(-100), y: 2*yScale(0)-extrapolateFocusLine("x", focus, pencilBound.y + pencilBound.height - 9 - margin.top + window.scrollY)}
+		];
+	};
+	let dashedExtraBottom = function(){
+		boundUpdate();
+		return [
+			{x: pencilBound.x - margin.right + window.scrollX, y: pencilBound.y + pencilBound.height - 9 - margin.top + window.scrollY},
+			{x: xScale(0), y: 2*yScale(0)-extrapolateFocusLine("x bottom", focus, pencilBound.y + pencilBound.height - 9 - margin.top + window.scrollY)},
+			{x: xScale(-100), y: 2*yScale(0)-extrapolateFocusLine("x bottom", focus, pencilBound.y + pencilBound.height - 9 - margin.top + window.scrollY)}
+		];
+	};
+	let dashedLineTop = function(){
+		boundUpdate();
+		return [
+			{x: xScale(0), y: 2*yScale(0)-extrapolateFocusLine("x", focus, pencilBound.y + pencilBound.height - 9 - margin.top + window.scrollY)},
+			{x: xScale(100), y: 2*yScale(0)-extrapolateFocusLine("x", focus, pencilBound.y + pencilBound.height - 9 - margin.top + window.scrollY)}
+		];
+	};
+	let dashedLineBottom = function(){
+		boundUpdate();
+		return [
+			{x: xScale(0), y: 2*yScale(0)-extrapolateFocusLine("x bottom", focus, pencilBound.y + pencilBound.height - 9 - margin.top + window.scrollY)},
+			{x: xScale(100), y: 2*yScale(0)-extrapolateFocusLine("x bottom", focus, pencilBound.y + pencilBound.height - 9 - margin.top + window.scrollY)}
+		];
 	};
 	let objectImageScale = function(){
 		// doing math rip
 		boundUpdate();
-		let f = xScale(0) - xScale(-focus);
+		let f = xScale(0) - xScale(focus);
 		let d0 = xScale(0) - (pencilBound.x - margin.right - window.scrollX);
 		let di = 1/((1/f)-(1/d0));
-		let h = extrapolateFocusLine("x")-extrapolateFocusLine("x bottom");
+		let h = extrapolateFocusLine('x')-extrapolateFocusLine("x bottom");
 		let imageScale = h/pencilBound.height;
-		if (pencilBound.x-margin.right+window.scrollX > xScale(-focus)){
-			d3.select("#object-image").attr("transform", "rotate(180) scale("+imageScale+") translate(" + (-(xScale(0)+di-imageBound.width)/imageScale) + ", " + ((-extrapolateFocusLine("x"))/imageScale) + ")");
-			d3.select(".cls-1").style("fill", "rgba(13, 159, 241, 0.5)");
-		}
+		d3.select("#object-image").attr("transform", "scale("+imageScale+") translate(" + ((xScale(0)-di)/imageScale) + ", " + ((2*yScale(0)-(extrapolateFocusLine("x", focus, pencilBound.y + pencilBound.height - 9 - margin.top + window.scrollY)))/imageScale) + ")");
+		d3.select(".cls-1").style("fill", "rgba(13, 159, 241, 0.5)");
 	};
 	objectImageScale();
 	function updateLines(){
@@ -403,17 +452,33 @@ function convexMirrorRay(){
 		d3.select(".solidRayBottom").attr("d", line(solidRayBottom()));
 		d3.select(".rayFocusBottom").attr("d", line(rayFocusBottom()));
 		d3.select('.dashedLineTop').attr("d", line(dashedLineTop()));
+		d3.select(".dashedLineTop").attr("visibility", "visible");
 		d3.select('.dashedLineBottom').attr("d", line(dashedLineBottom()));
+		d3.select(".dashedLineBottom").attr("visibility", "visible");
 		d3.select(".dashedExtraTop").attr("d", line(dashedExtraTop()));
+		d3.select(".dashedExtraTop").attr("visibility", "visible").attr("stroke-dasharray", "none");
 		d3.select(".dashedExtraBottom").attr("d", line(dashedExtraBottom()));
+		d3.select(".dashedExtraBottom").attr("visibility", "visible").attr("stroke-dasharray", "none");
 		objectImageScale();
 		d3.select(".rayFocus").attr("stroke-dasharray", "5 10");
 		d3.select('.rayFocusBottom').attr("stroke-dasharray", "5 10");
-		d3.select(".dashedLineTop").attr("visibility", "visible");
-		d3.select(".dashedLineBottom").attr("visibility", "visible");
-		d3.select(".dashedExtraTop").attr("visibility", "visible");
-		d3.select(".dashedExtraBottom").attr("visibility", "visible");
 	}
+	updateLines();
+	var mirrorDrag = d3.drag().on("start", dragstarted).on("drag", dragmove);
+	d3.select("#object").call(mirrorDrag);
+	function dragstarted(){
+		// redraws the object to be on top
+		d3.select(this).raise();
+	}
+	function dragmove(){
+		// gets the bounding rectangle so we can find the center
+		let bound = this.getBoundingClientRect();
+		var x = d3.event.x - (bound.width/2);
+		var y = d3.event.y - (bound.height/2);
+		d3.select(this).attr("transform", "translate("+(Math.min(x, xScale(0)-bound.width))+","+y+")");
+		updateLines();
+	}
+	console.log(document.querySelector(".solidRayTop").getPointAtLength(100));
 }
 // runs stuff depending on which button is clicked.
 d3.select("#convex-lens").on("click", function(){
@@ -442,6 +507,19 @@ d3.select("#plane-mirror").on("click", function(){
 	d3.select(".cls-1").style("fill", "rgba(13, 159, 241, 0.5)");
 	d3.selectAll(".focusData").attr("visibility", "hidden");
 	planeMirrorRay();
+});
+d3.select("#convex-mirror").on("click", function(){
+	d3.select(".rayFocus").style('opacity', 1);
+	d3.select(".rayFocusBottom").style('opacity', 1);
+	d3.select(".dashedExtraTop").style('opacity', 1);
+	d3.select(".dashedExtraBottom").style('opacity', 1);
+	d3.select(".dashedLineTop").style('opacity', 1);
+	d3.select(".dashedLineBottom").style('opacity', 1);
+	d3.select("#eye").attr("visibility", "hidden");
+	d3.select(".dashedRayTop").style('opacity', 0);
+	d3.select(".dashedRayBottom").style('opacity', 0);
+	d3.selectAll(".focusData").attr("visibility", "visible");
+	convexMirrorRay();
 });
 function boundUpdate(){
 	pencilBound = d3.select("#object").node().getBoundingClientRect();
