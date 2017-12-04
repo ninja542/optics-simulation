@@ -282,12 +282,12 @@ function convexLensRay(){
 		// doing math rip
 		boundUpdate();
 		let f = xScale(focus) - xScale(0);
-		let d0 = xScale(0) - (pencilBound.x - margin.right - window.scrollX);
+		let d0 = xScale(0) - (pencilBound.x - margin.right + window.scrollX);
 		let di = 1/((1/f)-(1/d0));
 		let h = extrapolateFocusLine("x")-extrapolateFocusLine("x bottom");
 		let imageScale = h/pencilBound.height;
 		if (pencilBound.x-margin.right+window.scrollX > xScale(-focus)){
-			d3.select("#object-image").attr("transform", "rotate(180) scale("+imageScale+") translate(" + (-(xScale(0)+di-imageBound.width-window.scrollX)/imageScale) + ", " + ((-extrapolateFocusLine("x"))/imageScale) + ")");
+			d3.select("#object-image").attr("transform", "rotate(180) scale("+imageScale+") translate(" + (-(xScale(0)+di-imageBound.width)/imageScale) + ", " + ((-extrapolateFocusLine("x"))/imageScale) + ")");
 			d3.select(".cls-1").style("fill", "rgba(13, 159, 241, 0.5)");
 		}
 		else {
@@ -437,7 +437,7 @@ function convexMirrorRay(){
 		// doing math rip
 		boundUpdate();
 		let f = xScale(0) - xScale(focus);
-		let d0 = xScale(0) - (pencilBound.x - margin.right - window.scrollX);
+		let d0 = xScale(0) - (pencilBound.x - margin.right + window.scrollX);
 		let di = 1/((1/f)-(1/d0));
 		let h = extrapolateFocusLine('x')-extrapolateFocusLine("x bottom");
 		let imageScale = h/pencilBound.height;
