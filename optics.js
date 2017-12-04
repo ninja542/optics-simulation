@@ -49,7 +49,7 @@ svg.append("g").call(xAxis).attr("transform", "translate(" + 0 + ", " + yScale(0
 svg.append("g").call(yAxis).attr("transform", "translate(" + xScale(0) + ", " + 0 + ")");
 
 //drawing the lines variable
-let line = d3.line().x(function(d){ return d.x; }).y(function(d){ return d.y; });
+var line = d3.line().x(function(d){ return d.x; }).y(function(d){ return d.y; });
 // plane mirror
 svg.append("path").attr("stroke-width", 1).attr("stroke", "black").attr("fill", "none").attr("stroke-dasharray", "5, 10").attr("class", "dashedRayTop");
 svg.append("path").attr("stroke-width", 1).attr("stroke", "red").attr("fill", "none").attr("stroke-dasharray", "5, 10").attr("class", "dashedRayBottom");
