@@ -854,7 +854,7 @@ d3.select("#concave-lens").on("click", function(){
 	d3.select(".dashedRayTop").style('opacity', 0);
 	d3.select(".dashedRayBottom").style('opacity', 0);
 	d3.selectAll(".focusData").attr("visibility", "visible");
-	convexLensRay();
+	concaveLensRay();
 });
 d3.select("#concave-mirror").on("click", function(){
 	d3.select(".rayFocus").style('opacity', 1);
@@ -867,7 +867,7 @@ d3.select("#concave-mirror").on("click", function(){
 	d3.select(".dashedRayTop").style('opacity', 0);
 	d3.select(".dashedRayBottom").style('opacity', 0);
 	d3.selectAll(".focusData").attr("visibility", "visible");
-	convexLensRay();
+	concaveMirrorRay();
 });
 function boundUpdate(){
 	pencilBound = d3.select("#object").node().getBoundingClientRect();
