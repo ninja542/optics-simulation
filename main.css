@@ -45,3 +45,6 @@
 	stroke:#000;
 	stroke-miterlimit:10;
 }
+#object:hover {
+	cursor: pointer;
+}
